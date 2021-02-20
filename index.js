@@ -289,6 +289,8 @@ PeopleAccessory.prototype.getLastActivation = function(callback) {
     if (lastSeenUnix) {
         var lastSeenMoment = moment(lastSeenUnix).unix();
         callback(null, lastSeenMoment - this.historyService.getInitialTime());
+    } else {
+        callback(null, 0);
     }
 }
 
