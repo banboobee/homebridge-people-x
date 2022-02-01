@@ -268,6 +268,12 @@ function PeopleAccessory(log, config, platform) {
 
     this.initStateCache();
 
+    this.historyService.addEntry(
+	{
+	    time: moment().unix(),
+	    status: (this.stateCache) ? 1 : 0
+	});
+    
     if(this.pingInterval > -1) {
         this.ping();
     }
