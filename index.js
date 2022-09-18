@@ -27,7 +27,7 @@ module.exports = function(homebridge) {
 
 function PeoplePlatform(log, config){
     this.log = log;
-    this.threshold = config['threshold'] || 15;
+    this.threshold = config['threshold'] >= 0 ? config['threshold'] : 15;
     this.anyoneSensor = ((typeof(config['anyoneSensor']) != "undefined" && config['anyoneSensor'] !== null)?config['anyoneSensor']:true);
     this.nooneSensor = ((typeof(config['nooneSensor']) != "undefined" && config['nooneSensor'] !== null)?config['nooneSensor']:true);
     this.webhookPort = config["webhookPort"] || 51828;
@@ -168,7 +168,7 @@ function PeopleAccessory(log, config, platform) {
     this.name = config['name'];
     this.target = config['target'];
     this.platform = platform;
-    this.threshold = config['threshold'] || this.platform.threshold;
+    this.threshold = config['threshold'] >= 0 ? config['threshold'] : this.platform.threshold;
     this.pingInterval = config['pingInterval'] || this.platform.pingInterval;
     this.ignoreReEnterExitSeconds = config['ignoreReEnterExitSeconds'] || this.platform.ignoreReEnterExitSeconds;
     this.stateCache = false;
@@ -263,7 +263,8 @@ function PeopleAccessory(log, config, platform) {
         },
         {
             storage: 'fs',
-            disableTimer: true
+	  //disableTimer: true
+	    disableTimer: false
         });
 
     this.initStateCache();
@@ -294,8 +295,14 @@ PeopleAccessory.prototype.getLastActivation = function(callback) {
     var lastSeenUnix = this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target);
     if (lastSeenUnix) {
         var lastSeenMoment = moment(lastSeenUnix).unix();
-        callback(null, lastSeenMoment - this.historyService.getInitialTime());
+	// this.log('%s %d %d %d',
+	// 	 this.target,
+	// 	 lastSeenMoment,
+	// 	 this.historyService.getInitialTime(),
+	// 	 lastSeenMoment - this.historyService.getInitialTime());
+        callback(null, Math.max(0, lastSeenMoment - this.historyService.getInitialTime()));
     } else {
+	//this.log('%s %d', this.target, 0);
         callback(null, 0);
     }
 }
@@ -314,7 +321,7 @@ PeopleAccessory.prototype.isActive = function() {
     var lastSeenUnix = this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target);
     if (lastSeenUnix) {
         var lastSeenMoment = moment(lastSeenUnix);
-        var activeThreshold = moment().subtract(this.threshold, 'm');
+        var activeThreshold = moment().subtract(this.threshold * 60 * 1000 + 100, 'ms');
         return lastSeenMoment.isAfter(activeThreshold);
     }
     return false;
@@ -394,8 +401,15 @@ PeopleAccessory.prototype.setNewState = function(newState) {
                 time: moment().unix(),
                 status: (newState) ? 1 : 0
             });
-        this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
+	// this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
+        this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.name, newState, lastSuccessfulPingMoment, lastWebhookMoment);
     }
+    // this.historyService.addEntry(
+    // {
+    //     time: moment().unix(),
+    //     status: (newState) ? 1 : 0
+    // });
+
 }
 
 PeopleAccessory.prototype.getServices = function() {
