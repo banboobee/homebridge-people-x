@@ -27,7 +27,7 @@ module.exports = function(homebridge) {
 
 function PeoplePlatform(log, config){
   this.log = log;
-  this.threshold = config.threshold || 15;
+  this.threshold = config.threshold ?? 15;
   this.anyoneSensor = ((typeof(config.anyoneSensor) != 'undefined' && config.anyoneSensor !== null)?config.anyoneSensor:true);
   this.nooneSensor = ((typeof(config.nooneSensor) != 'undefined' && config.nooneSensor !== null)?config.nooneSensor:true);
   this.webhookPort = config.webhookPort || 51828;
@@ -167,7 +167,7 @@ function PeopleAccessory(log, config, platform) {
   this.name = config.name;
   this.target = config.target;
   this.platform = platform;
-  this.threshold = config.threshold || this.platform.threshold;
+  this.threshold = config.threshold ?? this.platform.threshold;
   this.pingInterval = config.pingInterval || this.platform.pingInterval;
   this.ignoreReEnterExitSeconds = config.ignoreReEnterExitSeconds || this.platform.ignoreReEnterExitSeconds;
   this.stateCache = false;
@@ -262,10 +262,16 @@ function PeopleAccessory(log, config, platform) {
   },
   {
     storage: 'fs',
-    disableTimer: true,
+    disableTimer: false,
   });
 
   this.initStateCache();
+
+  this.historyService.addEntry(
+    {
+      time: moment().unix(),
+      status: (this.stateCache) ? 1 : 0
+    });
 
   if(this.pingInterval > -1) {
     this.ping();
@@ -288,7 +294,8 @@ PeopleAccessory.prototype.getLastActivation = function(callback) {
   var lastSeenUnix = this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target);
   if (lastSeenUnix) {
     var lastSeenMoment = moment(lastSeenUnix).unix();
-    callback(null, lastSeenMoment - this.historyService.getInitialTime());
+    // callback(null, lastSeenMoment - this.historyService.getInitialTime());
+    callback(null, Math.max(0, lastSeenMoment - this.historyService.getInitialTime()));
   } else {
     callback(null, 0);
   }
@@ -337,7 +344,8 @@ PeopleAccessory.prototype.webhookIsOutdated = function() {
   var lastWebhookUnix = this.platform.storage.getItemSync('lastWebhook_' + this.target);
   if (lastWebhookUnix) {
     var lastWebhookMoment = moment(lastWebhookUnix);
-    var activeThreshold = moment().subtract(this.threshold, 'm');
+    // var activeThreshold = moment().subtract(this.threshold, 'm');
+    var activeThreshold = moment().subtract(this.threshold * 60 * 1000 + 100, 'ms');
     return lastWebhookMoment.isBefore(activeThreshold);
   }
   return true;
@@ -387,7 +395,8 @@ PeopleAccessory.prototype.setNewState = function(newState) {
         time: moment().unix(),
         status: (newState) ? 1 : 0,
       });
-    this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
+    // this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.target, newState, lastSuccessfulPingMoment, lastWebhookMoment);
+    this.log('Changed occupancy state for %s to %s. Last successful ping %s , last webhook %s .', this.name, newState, lastSuccessfulPingMoment, lastWebhookMoment);
   }
 };
 
