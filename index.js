@@ -315,7 +315,8 @@ PeopleAccessory.prototype.isActive = function() {
   var lastSeenUnix = this.platform.storage.getItemSync('lastSuccessfulPing_' + this.target);
   if (lastSeenUnix) {
     var lastSeenMoment = moment(lastSeenUnix);
-    var activeThreshold = moment().subtract(this.threshold, 'm');
+    // var activeThreshold = moment().subtract(this.threshold, 'm');
+    var activeThreshold = moment().subtract(this.threshold * 60 * 1000 + 100, 'ms');
     return lastSeenMoment.isAfter(activeThreshold);
   }
   return false;
