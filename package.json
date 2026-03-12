@@ -38,8 +38,7 @@
     "fakegato-history": "^0.6.7",
     "moment": "^2.11.2",
     "node-persist": "0.0.8",
-    "ping": "^0.1.10",
-    "request": "^2.79.0"
+    "ping": "^0.1.10"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",
