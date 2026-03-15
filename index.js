@@ -27,8 +27,8 @@ module.exports = function(homebridge) {
 function PeoplePlatform(log, config){
   this.log = log;
   this.threshold = config.threshold ?? 15;
-  this.anyoneSensor = ((typeof(config.anyoneSensor) != 'undefined' && config.anyoneSensor !== null)?config.anyoneSensor:true);
-  this.nooneSensor = ((typeof(config.nooneSensor) != 'undefined' && config.nooneSensor !== null)?config.nooneSensor:true);
+  this.anyoneSensor = ((typeof(config.anyoneSensor) != 'undefined' && config.anyoneSensor !== null)?config.anyoneSensor:false);
+  this.nooneSensor = ((typeof(config.nooneSensor) != 'undefined' && config.nooneSensor !== null)?config.nooneSensor:false);
   this.webhookPort = config.webhookPort || 51828;
   this.cacheDirectory = config.cacheDirectory || HomebridgeAPI.user.persistPath();
   this.pingInterval = config.pingInterval || 10000;
@@ -163,6 +163,7 @@ PeoplePlatform.prototype = {
 
 function PeopleAccessory(log, config, platform) {
   this.log = log;
+  this.history = config.history;
   this.name = config.name;
   this.target = config.target;
   this.platform = platform;
@@ -171,6 +172,20 @@ function PeopleAccessory(log, config, platform) {
   this.ignoreReEnterExitSeconds = config.ignoreReEnterExitSeconds || this.platform.ignoreReEnterExitSeconds;
   this.stateCache = false;
 
+  if(this.history === false) {
+  this.service = new Service.OccupancySensor(this.name);
+  this.service
+    .getCharacteristic(Characteristic.OccupancyDetected)
+    .on('get', this.getState.bind(this));
+
+  this.accessoryService = new Service.AccessoryInformation;
+  this.accessoryService
+    .setCharacteristic(Characteristic.Name, this.name)
+    .setCharacteristic(Characteristic.SerialNumber, this.name.toLowerCase())
+    .setCharacteristic(Characteristic.Manufacturer, 'Elgato');
+
+  this.initStateCache();
+  } else {
   class LastActivationCharacteristic extends Characteristic {
     constructor(accessory) {
       super('LastActivation', 'E863F11A-079E-48FF-8F27-9C2605A29F52');
@@ -271,7 +286,8 @@ function PeopleAccessory(log, config, platform) {
       time: moment().unix(),
       status: (this.stateCache) ? 1 : 0
     });
-
+  }
+  
   if(this.pingInterval > -1) {
     this.ping();
   }
@@ -369,7 +385,9 @@ PeopleAccessory.prototype.setNewState = function(newState) {
   var oldState = this.stateCache;
   if (oldState != newState) {
     this.stateCache = newState;
-    this.service.getCharacteristic(Characteristic.MotionDetected).updateValue(PeopleAccessory.encodeState(newState));
+    this.service.getCharacteristic(this.history !== false ?
+				   Characteristic.MotionDetected :
+				   Characteristic.OccupancySensor).updateValue(PeopleAccessory.encodeState(newState));
 
     if(this.platform.peopleAnyOneAccessory) {
       this.platform.peopleAnyOneAccessory.refreshState();
@@ -390,7 +408,7 @@ PeopleAccessory.prototype.setNewState = function(newState) {
       lastWebhookMoment = moment(lastWebhook).format();
     }
 
-    this.historyService.addEntry(
+    this.historyService?.addEntry(
       {
         time: moment().unix(),
         status: (newState) ? 1 : 0,
