@@ -176,11 +176,11 @@ function PeopleAccessory(log, config, platform) {
     constructor(accessory) {
       super('LastActivation', 'E863F11A-079E-48FF-8F27-9C2605A29F52');
       this.setProps({
-        format: Characteristic.Formats.UINT32,
-        unit: Characteristic.Units.SECONDS,
+        format: HomebridgeAPI.hap.Formats.UINT32,
+        unit: HomebridgeAPI.hap.Units.SECONDS,
         perms: [
-          Characteristic.Perms.READ,
-          Characteristic.Perms.NOTIFY,
+          HomebridgeAPI.hap.Perms.READ,
+          HomebridgeAPI.hap.Perms.NOTIFY,
         ],
       });
     }
@@ -190,7 +190,7 @@ function PeopleAccessory(log, config, platform) {
     constructor(accessory) {
       super('Sensitivity', 'E863F120-079E-48FF-8F27-9C2605A29F52');
       this.setProps({
-        format: Characteristic.Formats.UINT8,
+        format: HomebridgeAPI.hap.Formats.UINT8,
         minValue: 0,
         maxValue: 7,
         validValues: [0, 4, 7],
@@ -207,8 +207,8 @@ function PeopleAccessory(log, config, platform) {
     constructor(accessory) {
       super('Duration', 'E863F12D-079E-48FF-8F27-9C2605A29F52');
       this.setProps({
-        format: Characteristic.Formats.UINT16,
-        unit: Characteristic.Units.SECONDS,
+        format: HomebridgeAPI.hap.Formats.UINT16,
+        unit: HomebridgeAPI.hap.Units.SECONDS,
         minValue: 5,
         maxValue: 15 * 3600,
         validValues: [
@@ -217,9 +217,9 @@ function PeopleAccessory(log, config, platform) {
           1 * 3600, 2 * 3600, 3 * 3600, 5 * 3600, 10 * 3600, 12 * 3600, 15 * 3600,
         ],
         perms: [
-          Characteristic.Perms.READ,
-          Characteristic.Perms.NOTIFY,
-          Characteristic.Perms.WRITE,
+          HomebridgeAPI.hap.Perms.READ,
+          HomebridgeAPI.hap.Perms.NOTIFY,
+          HomebridgeAPI.hap.Perms.WRITE,
         ],
       });
     }
