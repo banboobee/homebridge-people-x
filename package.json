@@ -1,6 +1,6 @@
 {
   "name": "homebridge-people-x",
-  "version": "0.8.0",
+  "version": "0.8.2",
   "description": "Homebridge plugin that provides details of who is in a Home + History (powered by fakegato)",
   "keywords": [
     "homebridge",
@@ -12,7 +12,7 @@
   },
   "engines": {
     "homebridge": "^1.6.0 || ^2.0.0-beta.0",
-    "node": "^18.20.4 || ^20.15.1 || ^22"
+    "node": "^18.20.4 || ^20.15.1 || ^22 || ^24"
   },
   "author": "skrollme <github@skroll.me>",
   "license": "ISC",
